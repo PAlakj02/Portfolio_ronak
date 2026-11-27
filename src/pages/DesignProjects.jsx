@@ -14,10 +14,6 @@ const offsetOf = (i, active) => {
   return d;
 };
 
-// Every work opens in the modal: multi-page projects show their full set,
-// single works show the one image large.
-const setOf = (w) => w.set || [{ src: w.src, span: "solo", contain: w.contain }];
-
 export default function DesignProjects() {
   const [active, setActive] = useState(0);
   const [colors, setColors] = useState({});
@@ -49,8 +45,9 @@ export default function DesignProjects() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  // Only multi-page projects (the ones with a Drive folder) get the explore cursor.
   const showCursor = (e, w) => {
-    if (!finePointer.current || !cursorRef.current) return;
+    if (!finePointer.current || !cursorRef.current || !w.set) return;
     target.current = { x: e.clientX, y: e.clientY };
     if (!shown.current) {
       pos.current = { x: e.clientX, y: e.clientY };
@@ -90,7 +87,7 @@ export default function DesignProjects() {
   // Deep link: /#glubi opens that project.
   useEffect(() => {
     const id = window.location.hash.slice(1);
-    const i = WORKS.findIndex((w) => w.id === id);
+    const i = WORKS.findIndex((w) => w.id === id && w.set);
     if (i >= 0) {
       setActive(i);
       setOpen(WORKS[i]);
@@ -120,10 +117,13 @@ export default function DesignProjects() {
     return () => window.removeEventListener("keydown", onKey);
   }, [active, open, go]);
 
+  // Multi-page projects open their bento grid; single works just slide to the center.
   const openWork = (w, i) => {
-    hideCursor();
-    go(i);
-    setOpen(w);
+    if (w.set) {
+      hideCursor();
+      go(i);
+      setOpen(w);
+    } else if (i !== active) go(i);
   };
 
   return (
@@ -151,7 +151,7 @@ export default function DesignProjects() {
           return (
             <figure
               key={w.id}
-              className={`reel-card ${d === 0 ? "center" : ""}`}
+              className={`reel-card ${d === 0 ? "center" : ""} ${w.set ? "multi" : ""}`}
               style={{
                 transform: `translate(-50%, -50%) translateX(${d * 92}%) scale(${d === 0 ? 1 : 0.78})`,
                 opacity: hidden ? 0 : d === 0 ? 1 : 0.55,
@@ -172,7 +172,7 @@ export default function DesignProjects() {
             >
               <div className="reel-frame" style={{ background: colors[w.id] ? rgb(colors[w.id]) : undefined }}>
                 <img src={w.src} alt={w.title} className={w.contain ? "contain" : ""} draggable="false" />
-                {d === 0 && <span className="explore-badge">Tap to explore</span>}
+                {d === 0 && w.set && <span className="explore-badge">Tap to explore</span>}
               </div>
             </figure>
           );
@@ -184,9 +184,11 @@ export default function DesignProjects() {
         <div className="reel-caption" aria-live="polite">
           <span className="reel-kind">{current.kind}</span>
           <h1 className="reel-title">{current.title}</h1>
-          <button className="reel-open" onClick={() => setOpen(current)}>
-            {current.set ? "Explore the full project →" : "View it larger →"}
-          </button>
+          {current.set && (
+            <button className="reel-open" onClick={() => setOpen(current)}>
+              Explore the full project →
+            </button>
+          )}
         </div>
         <button className="arrow reel-arrow" onClick={() => go(active + 1)} aria-label="Next work">→</button>
       </div>
@@ -205,7 +207,7 @@ export default function DesignProjects() {
 
       {open && (
         <BentoModal
-          work={{ ...open, set: setOf(open) }}
+          work={open}
           bg={rgb((colors[open.id] || [30, 30, 30]).map((v) => Math.round(v * 0.35)))}
           onClose={() => setOpen(null)}
         />
