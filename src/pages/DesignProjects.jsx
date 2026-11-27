@@ -3,7 +3,7 @@ import { WORKS } from "../works.js";
 import { averageColor, rgb, invert, isLight } from "../color.js";
 import BentoModal from "../components/BentoModal.jsx";
 
-const AUTO_MS = 3800;
+const AUTO_MS = 3000; // moves to the next design every 3 seconds
 const N = WORKS.length;
 
 // Shortest signed distance from the active slide, so the reel loops forever.
@@ -17,7 +17,6 @@ const offsetOf = (i, active) => {
 export default function DesignProjects() {
   const [active, setActive] = useState(0);
   const [colors, setColors] = useState({});
-  const [paused, setPaused] = useState(false);
   const [open, setOpen] = useState(null);
   const touch = useRef(null);
 
@@ -99,12 +98,13 @@ export default function DesignProjects() {
 
   const go = useCallback((i) => setActive(((i % N) + N) % N), []);
 
-  // Auto scroll.
+  // Auto scroll. Never pauses on hover; only stops while a project's grid is open.
+  // Any arrow click changes `active`, which restarts the 3 second timer from there.
   useEffect(() => {
-    if (paused || open) return;
+    if (open) return;
     const t = setTimeout(() => go(active + 1), AUTO_MS);
     return () => clearTimeout(t);
-  }, [active, paused, open, go]);
+  }, [active, open, go]);
 
   // Keyboard arrows.
   useEffect(() => {
@@ -160,15 +160,9 @@ export default function DesignProjects() {
               }}
               aria-hidden={d !== 0}
               onClick={() => openWork(w, i)}
-              onMouseEnter={(e) => {
-                if (d === 0) setPaused(true);
-                showCursor(e, w);
-              }}
+              onMouseEnter={(e) => showCursor(e, w)}
               onMouseMove={(e) => showCursor(e, w)}
-              onMouseLeave={() => {
-                setPaused(false);
-                hideCursor();
-              }}
+              onMouseLeave={hideCursor}
             >
               <div className="reel-frame" style={{ background: colors[w.id] ? rgb(colors[w.id]) : undefined }}>
                 <img src={w.src} alt={w.title} className={w.contain ? "contain" : ""} draggable="false" />
@@ -196,7 +190,7 @@ export default function DesignProjects() {
       <div className="reel-progress">
         {WORKS.map((w, i) => (
           <button key={w.id} className={i === active ? "on" : ""} onClick={() => go(i)} aria-label={`Show ${w.title}`}>
-            {i === active && !paused && !open && <span key={active} style={{ animationDuration: `${AUTO_MS}ms` }} />}
+            {i === active && !open && <span key={active} style={{ animationDuration: `${AUTO_MS}ms` }} />}
           </button>
         ))}
       </div>
