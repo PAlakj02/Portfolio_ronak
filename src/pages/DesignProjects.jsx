@@ -14,14 +14,60 @@ const offsetOf = (i, active) => {
   return d;
 };
 
+// Every work opens in the modal: multi-page projects show their full set,
+// single works show the one image large.
+const setOf = (w) => w.set || [{ src: w.src, span: "solo", contain: w.contain }];
+
 export default function DesignProjects() {
   const [active, setActive] = useState(0);
   const [colors, setColors] = useState({});
   const [paused, setPaused] = useState(false);
   const [open, setOpen] = useState(null);
-  const [cursor, setCursor] = useState({ on: false, x: 0, y: 0, color: [255, 255, 255] });
   const touch = useRef(null);
+
+  // Smooth custom cursor, driven by requestAnimationFrame instead of React state.
+  const cursorRef = useRef(null);
+  const target = useRef({ x: 0, y: 0 });
+  const pos = useRef({ x: 0, y: 0 });
+  const shown = useRef(false);
+  const colorsRef = useRef({});
+  colorsRef.current = colors;
   const finePointer = useRef(typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches);
+
+  useEffect(() => {
+    if (!finePointer.current) return;
+    let raf;
+    const tick = () => {
+      pos.current.x += (target.current.x - pos.current.x) * 0.22;
+      pos.current.y += (target.current.y - pos.current.y) * 0.22;
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${pos.current.x}px, ${pos.current.y}px, 0)`;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const showCursor = (e, w) => {
+    if (!finePointer.current || !cursorRef.current) return;
+    target.current = { x: e.clientX, y: e.clientY };
+    if (!shown.current) {
+      pos.current = { x: e.clientX, y: e.clientY };
+      shown.current = true;
+    }
+    const c = colorsRef.current[w.id] || [0, 0, 0];
+    const fill = invert(c);
+    const el = cursorRef.current;
+    el.style.setProperty("--cur-bg", rgb(fill));
+    el.style.setProperty("--cur-fg", isLight(fill) ? "#14180f" : "#fbf8ee");
+    el.classList.add("show");
+  };
+
+  const hideCursor = () => {
+    shown.current = false;
+    cursorRef.current?.classList.remove("show");
+  };
 
   // Sample the average color of every work once.
   useEffect(() => {
@@ -41,18 +87,17 @@ export default function DesignProjects() {
     document.documentElement.style.removeProperty("--reel-fg");
   }, []);
 
-  // Deep link: /#glubi opens that project's bento grid.
+  // Deep link: /#glubi opens that project.
   useEffect(() => {
     const id = window.location.hash.slice(1);
-    const i = WORKS.findIndex((w) => w.id === id && w.set);
+    const i = WORKS.findIndex((w) => w.id === id);
     if (i >= 0) {
       setActive(i);
       setOpen(WORKS[i]);
     }
   }, []);
   useEffect(() => {
-    const url = open ? `#${open.id}` : window.location.pathname;
-    window.history.replaceState(null, "", url);
+    window.history.replaceState(null, "", open ? `#${open.id}` : window.location.pathname);
   }, [open]);
 
   const go = useCallback((i) => setActive(((i % N) + N) % N), []);
@@ -75,16 +120,10 @@ export default function DesignProjects() {
     return () => window.removeEventListener("keydown", onKey);
   }, [active, open, go]);
 
-  const onCardClick = (w, i) => {
-    if (w.set) {
-      setCursor((c) => ({ ...c, on: false }));
-      setOpen(w);
-    } else if (i !== active) go(i);
-  };
-
-  const moveCursor = (e, w) => {
-    if (!finePointer.current || !w.set) return;
-    setCursor({ on: true, x: e.clientX, y: e.clientY, color: colors[w.id] || [0, 0, 0] });
+  const openWork = (w, i) => {
+    hideCursor();
+    go(i);
+    setOpen(w);
   };
 
   return (
@@ -112,7 +151,7 @@ export default function DesignProjects() {
           return (
             <figure
               key={w.id}
-              className={`reel-card ${d === 0 ? "center" : ""} ${w.set ? "multi" : ""}`}
+              className={`reel-card ${d === 0 ? "center" : ""}`}
               style={{
                 transform: `translate(-50%, -50%) translateX(${d * 92}%) scale(${d === 0 ? 1 : 0.78})`,
                 opacity: hidden ? 0 : d === 0 ? 1 : 0.55,
@@ -120,17 +159,20 @@ export default function DesignProjects() {
                 pointerEvents: hidden ? "none" : "auto",
               }}
               aria-hidden={d !== 0}
-              onClick={() => onCardClick(w, i)}
-              onMouseEnter={() => d === 0 && setPaused(true)}
-              onMouseMove={(e) => moveCursor(e, w)}
+              onClick={() => openWork(w, i)}
+              onMouseEnter={(e) => {
+                if (d === 0) setPaused(true);
+                showCursor(e, w);
+              }}
+              onMouseMove={(e) => showCursor(e, w)}
               onMouseLeave={() => {
                 setPaused(false);
-                setCursor((c) => ({ ...c, on: false }));
+                hideCursor();
               }}
             >
               <div className="reel-frame" style={{ background: colors[w.id] ? rgb(colors[w.id]) : undefined }}>
                 <img src={w.src} alt={w.title} className={w.contain ? "contain" : ""} draggable="false" />
-                {w.set && <span className="explore-badge">Explore</span>}
+                {d === 0 && <span className="explore-badge">Tap to explore</span>}
               </div>
             </figure>
           );
@@ -142,45 +184,28 @@ export default function DesignProjects() {
         <div className="reel-caption" aria-live="polite">
           <span className="reel-kind">{current.kind}</span>
           <h1 className="reel-title">{current.title}</h1>
-          {current.set && (
-            <button className="reel-open" onClick={() => setOpen(current)}>
-              Explore the full project →
-            </button>
-          )}
+          <button className="reel-open" onClick={() => setOpen(current)}>
+            {current.set ? "Explore the full project →" : "View it larger →"}
+          </button>
         </div>
         <button className="arrow reel-arrow" onClick={() => go(active + 1)} aria-label="Next work">→</button>
       </div>
 
       <div className="reel-progress">
         {WORKS.map((w, i) => (
-          <button
-            key={w.id}
-            className={i === active ? "on" : ""}
-            onClick={() => go(i)}
-            aria-label={`Show ${w.title}`}
-          >
+          <button key={w.id} className={i === active ? "on" : ""} onClick={() => go(i)} aria-label={`Show ${w.title}`}>
             {i === active && !paused && !open && <span key={active} style={{ animationDuration: `${AUTO_MS}ms` }} />}
           </button>
         ))}
       </div>
 
-      {cursor.on && (
-        <div
-          className="explore-cursor"
-          style={{
-            transform: `translate(${cursor.x}px, ${cursor.y}px)`,
-            background: rgb(invert(cursor.color)),
-            color: rgb(cursor.color),
-          }}
-          aria-hidden="true"
-        >
-          explore
-        </div>
-      )}
+      <div ref={cursorRef} className="explore-cursor" aria-hidden="true">
+        <span>Explore</span>
+      </div>
 
       {open && (
         <BentoModal
-          work={open}
+          work={{ ...open, set: setOf(open) }}
           bg={rgb((colors[open.id] || [30, 30, 30]).map((v) => Math.round(v * 0.35)))}
           onClose={() => setOpen(null)}
         />
