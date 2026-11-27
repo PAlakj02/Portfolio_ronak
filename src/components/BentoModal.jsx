@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 // Full screen bento grid of every image in a multi-page project, with a Go Back arrow.
 export default function BentoModal({ work, bg, onClose }) {
@@ -14,7 +15,8 @@ export default function BentoModal({ work, bg, onClose }) {
     };
   }, [onClose]);
 
-  return (
+  // Rendered into <body> so no animated parent can trap it under the navbar.
+  return createPortal(
     <div className="bento-modal" role="dialog" aria-modal="true" aria-label={work.title} style={{ "--modal-bg": bg }}>
       <div className="bento-head">
         <button ref={backRef} className="go-back" onClick={onClose}>
@@ -39,6 +41,7 @@ export default function BentoModal({ work, bg, onClose }) {
           </figure>
         ))}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -209,10 +209,12 @@ ul { list-style: none; }
 .carousel-slide { min-width: 0; }
 .carousel-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 26px; }
 .dots { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.dots button { width: 28px; height: 4px; border: 0; background: var(--line); transition: 0.3s; }
-.dots button.on { background: var(--green); width: 44px; }
-.carousel.dark .dots button { background: rgba(251, 248, 238, 0.3); }
-.carousel.dark .dots button.on { background: var(--cream); }
+.dots button { width: 28px; height: 28px; border: 0; padding: 0; background: none; position: relative; transition: width 0.3s; }
+.dots button::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; background: var(--line); transition: background 0.3s; }
+.dots button.on { width: 44px; }
+.dots button.on::before { background: var(--green); }
+.carousel.dark .dots button::before { background: rgba(251, 248, 238, 0.3); }
+.carousel.dark .dots button.on::before { background: var(--cream); }
 .arrow { width: 48px; height: 48px; border: 2px solid var(--green); background: transparent; color: var(--green); font-size: 1.2rem; font-weight: 700; transition: 0.2s; flex-shrink: 0; }
 .arrow:hover { background: var(--green); color: var(--cream); }
 .carousel.dark .arrow, .arrow.light { border-color: var(--cream); color: var(--cream); }
@@ -305,13 +307,15 @@ body.on-reel .burger span { background: var(--reel-fg); }
 .reel-caption { text-align: center; min-width: 0; }
 .reel-kind { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.75; }
 .reel-title { font-size: clamp(1.8rem, 4.5vw, 3.4rem); font-weight: 800; line-height: 1.05; letter-spacing: -0.01em; }
-.reel-open { margin-top: 8px; background: none; border: 0; color: inherit; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; border-bottom: 1.5px solid currentColor; padding-bottom: 2px; }
+.reel-open { margin-top: 8px; padding-top: 8px; background: none; border: 0; color: inherit; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; border-bottom: 1.5px solid currentColor; padding-bottom: 2px; }
 .reel .arrow.reel-arrow { border-color: var(--reel-fg, var(--cream)); color: var(--reel-fg, var(--cream)); }
 .reel .arrow.reel-arrow:hover { background: var(--reel-fg, var(--cream)); color: var(--reel-bg, var(--green)); }
 .reel-progress { width: min(1180px, 100% - 32px); margin: 18px auto 0; display: flex; gap: 6px; }
-.reel-progress button { flex: 1; height: 3px; border: 0; padding: 0; background: color-mix(in srgb, var(--reel-fg, #fff) 25%, transparent); position: relative; overflow: hidden; }
-.reel-progress button.on { background: color-mix(in srgb, var(--reel-fg, #fff) 45%, transparent); }
-.reel-progress button span { position: absolute; inset: 0; background: var(--reel-fg, #fff); transform-origin: left; animation: fill linear forwards; }
+.reel-progress button { flex: 1; height: 22px; border: 0; padding: 0; background: none; position: relative; }
+.reel-progress button::before, .reel-progress button span { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 3px; margin-top: -1.5px; }
+.reel-progress button::before { background: color-mix(in srgb, var(--reel-fg, #fff) 25%, transparent); }
+.reel-progress button.on::before { background: color-mix(in srgb, var(--reel-fg, #fff) 45%, transparent); }
+.reel-progress button span { background: var(--reel-fg, #fff); transform-origin: left; animation: fill linear forwards; }
 @keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 /* bento modal */
@@ -366,12 +370,21 @@ body.on-reel .burger span { background: var(--reel-fg); }
 @media (max-width: 760px) {
   .nav-links a .ext { display: inline; }
   body.on-reel .nav-links { background: var(--reel-bg); }
-  .reel-card { width: 84vw; }
-  .reel-stage { min-height: 52vw; }
+  .reel { min-height: auto; padding: 16px 0 20px; }
+  .reel-card { width: 88vw; }
+  .reel-stage { flex: none; min-height: 0; height: calc(88vw * 9 / 16 + 30px); margin: 22px 0 18px; }
+  .reel-title { font-size: clamp(1.6rem, 8vw, 2.4rem); }
+  .reel-info { gap: 10px; }
+  .reel-info .arrow { width: 44px; height: 44px; }
+  .hide-sm { display: none; }
+  .manifesto { font-size: clamp(1.1rem, 5.2vw, 1.5rem); }
+  .bento-modal { padding-top: 12px; }
+  .bento-head { top: -12px; gap: 14px; }
+  .bento-title h2 { font-size: 1.6rem; }
+  .pc-card { flex-basis: 72vw; }
 }
 @media (max-width: 560px) {
   .bento-grid { grid-template-columns: 1fr; grid-auto-rows: 220px; }
   .bento-item.wide, .bento-item.big { grid-column: span 1; }
   .bento-item.big { grid-row: span 1; }
-  .reel-info .arrow { width: 40px; height: 40px; }
 }

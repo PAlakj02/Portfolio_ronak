@@ -186,7 +186,7 @@ export default function DesignProjects() {
           <h1 className="reel-title">{current.title}</h1>
           {current.set && (
             <button className="reel-open" onClick={() => setOpen(current)}>
-              Explore the full project →
+              Explore <span className="hide-sm">the full </span>project →
             </button>
           )}
         </div>
