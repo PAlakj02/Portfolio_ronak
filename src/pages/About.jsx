@@ -1,4 +1,5 @@
 import { EMAIL } from "../pages.js";
+import { openContact } from "../contact.js";
 
 const LOGOS = [
   { src: "/logos/scholastic.png", name: "Scholastic Art & Writing Awards" },
@@ -31,7 +32,7 @@ export default function About() {
             </p>
             <p className="lead strong">Have a project? Let's create something great.</p>
             <div className="btn-row">
-              <a className="btn" href={`mailto:${EMAIL}`} target="_blank" rel="noopener noreferrer">Let's talk ↗</a>
+              <button type="button" className="btn" onClick={openContact}>Let's talk →</button>
             </div>
           </div>
           <aside className="contact-card">

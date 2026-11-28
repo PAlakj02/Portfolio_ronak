@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import { NAV } from "../pages.js";
+import { openContact } from "../contact.js";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -30,6 +31,10 @@ export default function Navbar() {
               <NavLink key={n.label} to={n.to} end className={({ isActive }) => (isActive ? "active" : "")}>
                 {n.label}
               </NavLink>
+            ) : n.action === "contact" ? (
+              <button key={n.label} type="button" className="nav-btn" onClick={() => { setOpen(false); openContact(); }}>
+                {n.label}
+              </button>
             ) : (
               <a key={n.label} href={n.href} target="_blank" rel="noopener noreferrer">
                 {n.label} <span className="ext" aria-hidden="true">↗</span>

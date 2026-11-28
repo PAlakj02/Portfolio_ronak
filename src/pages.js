@@ -8,11 +8,11 @@ export const PAGES = [
   { path: "/hci", label: "HCI / Other Projects", blurb: "Design and technology for every learner" },
 ];
 
-// Nav items. Contact and CV open in a new tab, as requested in the brief.
+// Nav items. Contact opens the contact box; CV opens in a new tab.
 export const NAV = [
   { to: "/", label: "Design Projects" },
   { to: "/about", label: "About" },
   { to: "/hci", label: "HCI / Other Projects" },
-  { href: `mailto:${EMAIL}`, label: "Contact" },
+  { action: "contact", label: "Contact" },
   { href: CV_URL, label: "CV" },
 ];

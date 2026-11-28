@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import PageCarousel from "./components/PageCarousel.jsx";
 import Footer from "./components/Footer.jsx";
+import ContactModal from "./components/ContactModal.jsx";
 import DesignProjects from "./pages/DesignProjects.jsx";
 import About from "./pages/About.jsx";
 import Hci from "./pages/Hci.jsx";
@@ -30,6 +31,7 @@ export default function App() {
       </main>
       <PageCarousel />
       <Footer />
+      <ContactModal />
     </>
   );
 }

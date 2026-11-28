@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { PAGES, EMAIL, CV_URL } from "../pages.js";
+import { PAGES, CV_URL } from "../pages.js";
+import { openContact } from "../contact.js";
 
 // Page to page carousel shown at the bottom of every page.
 export default function PageCarousel() {
@@ -38,12 +39,12 @@ export default function PageCarousel() {
             <span className="pc-go">{idx === i ? "You are here" : "Go →"}</span>
           </Link>
         ))}
-        <a className="pc-card" href={`mailto:${EMAIL}`} target="_blank" rel="noopener noreferrer">
+        <button type="button" className="pc-card" onClick={openContact}>
           <span className="pc-num">04</span>
           <span className="pc-label">Contact</span>
           <span className="pc-blurb">Have a project? Let's create something great</span>
-          <span className="pc-go">Email me ↗</span>
-        </a>
+          <span className="pc-go">Message me →</span>
+        </button>
         <a className="pc-card" href={CV_URL} target="_blank" rel="noopener noreferrer">
           <span className="pc-num">05</span>
           <span className="pc-label">CV</span>
