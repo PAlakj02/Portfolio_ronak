@@ -93,7 +93,8 @@ export default function DesignProjects() {
     }
   }, []);
   useEffect(() => {
-    window.history.replaceState(null, "", open ? `#${open.id}` : window.location.pathname);
+    // Keep the router's history state so Back / Forward keep working.
+    window.history.replaceState(window.history.state, "", open ? `#${open.id}` : window.location.pathname);
   }, [open]);
 
   const go = useCallback((i) => setActive(((i % N) + N) % N), []);

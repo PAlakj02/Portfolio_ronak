@@ -9,7 +9,11 @@ import Hci from "./pages/Hci.jsx";
 
 export default function App() {
   const { pathname } = useLocation();
-  useEffect(() => window.scrollTo(0, 0), [pathname]);
+  // Braces matter: newer browsers return a Promise from scrollTo, which React
+  // would otherwise treat as a cleanup function and crash on page change.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
   useEffect(() => {
     document.body.classList.toggle("on-reel", pathname === "/");
   }, [pathname]);
